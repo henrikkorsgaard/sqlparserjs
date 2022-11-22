@@ -1,8 +1,32 @@
 
-const reservedWords = ["SELECT","FROM", "WHERE"]
+const reservedWords = ["SELECT","FROM", "WHERE", ">=", "<=", "!=", ",", "=", ">", "<"]
 const steps = ["stepType", "stepSelectField", "stepSelectFrom","stepSelectComma","stepSelectFromTable", "stepWhere", "stepWhereField", "stepWhereOperator","stepWhereValue", "stepWhereAnd"]
 
 const indentifierRegExp = new RegExp('[a-zA-Z0-9_*]'); 
+
+class SQLException {
+    constructor(err){
+        this.message = err
+        this.name = "SQLException"
+    }
+}
+
+class Condition {
+    
+    static Unknown = 0
+    static Eq = 1
+    static Ne = 2
+    static Gt = 3
+    static Lt = 4
+    static Gte = 5
+    static Lte = 6
+
+    constructor(firstCondition){
+        this.firstCondition = firstCondition
+        this.secondCondition = ""
+        this.operator = 0
+    }
+}
 
 class Query {
     constructor(){
@@ -23,14 +47,17 @@ class SQLParser {
     }
 
     parse(sql){
-        console.log(sql)
         this.sql = sql
+        if(this.sql[this.sql.length-1] != ";"){
+            throw new SQLException("SQL statement does not end with a ;")
+            return
+        }
         let run = true
-        while (run) {
-            
-            if(this.index >= this.sql.length) {
+        while (run) {        
+            if(this.sql[this.index] == ";") {
                 return this.query
             }
+            console.log("running here", steps[this.step])
             switch(steps[this.step]) {
                 case "stepType":
                     switch(this.peek().toUpperCase()){
@@ -47,7 +74,6 @@ class SQLParser {
                     break;
                 case "stepSelectField":
                     let identifier = this.peek()
-                    console.log(identifier)
                     // the other library does an additional check here, but I don't know why
                     this.query.fields.push(identifier)
                     this.pop()
@@ -85,9 +111,9 @@ class SQLParser {
                         break;
                     }
                     this.query.tableName = tableName
-                    console.log(tableName)
                     this.pop()
                     this.step = steps.indexOf("stepWhere")
+                    break
                 case "stepWhere":
                     let whereWord = this.peek()
                     if(whereWord.toUpperCase() != "WHERE"){
@@ -98,25 +124,61 @@ class SQLParser {
                     this.pop()
                     this.step = steps.indexOf("stepWhereField")
                     break
-                case "stepWhereField":
-                    identifier = this.peek()
-                    //this.query.conditions.push() // I NEED TO FIGURE THIS OUT
+                case "stepWhereField": {
+                    let identifier = this.peek()
+                    let condition = new Condition(identifier)
+                    this.query.conditions.push(condition)
                     this.pop()
                     this.step = steps.indexOf("stepWhereOperator")
                     break
-                case "stepWhereOperator"
+                    }
+                case "stepWhereOperator":
+                    let operator = this.peek()
+                    let currentCondition = this.query.conditions[this.query.conditions.length-1]
+                    switch(operator){
+                        case "=":
+                            currentCondition.operator = Condition.Eq
+                            break
+                        case ">":
+                            currentCondition.operator = Condition.Gt
+                            break
+                        case ">=":
+                            currentCondition.operator = Condition.Gte
+                            break
+                        case "<":
+                            currentCondition.operator = Condition.Lt
+                            break
+                        case "<=":
+                            currentCondition.operator = Condition.Lte
+                            break
+                        case "!=":
+                            currentCondition.operator = Condition.Ne
+                            break
+                        default:
+                            console.log("another error")
+                            run = false
+                            break
+                    }
+                    this.query.conditions[this.query.conditions.length-1] = currentCondition
+                    this.pop()
+                    this.step = steps.indexOf("stepWhereValue")
+                    break
+                case "stepWhereValue": { 
+                        let identifier = this.peek()
+                        let currentCondition = this.query.conditions[this.query.conditions.length-1]
+                        currentCondition.secondCondition = identifier
+                        this.query.conditions[this.query.conditions.length-1] = currentCondition
+                        this.pop()
+                        break;
+                    }
                 default:
-                    console.log(steps[this.step])
                     console.log("we need another error here")
                     run = false
                     return
             }
         }
     }
-
-    //we need to follow the proper methods from the reference implementation.
-    //peek, peekwithlength, pop, etc. 
-
+    
     peek() {
         return this.peekCases()
     }
@@ -158,14 +220,10 @@ class SQLParser {
                 return this.sql.substring(this.index,i)
             }
         }
-        console.log("never expected to get this far eh")
-        return this.sql[this.index, this.sql.length]
+        return this.sql[this.index, this.sql.length-1]
     }
 
     peekQuotedString(){}
+
 }
 
-
-
-p = new SQLParser()
-p.parse("SELECT * FROM table WHERE id=2")

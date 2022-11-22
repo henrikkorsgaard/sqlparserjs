@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<head>
+<script type="text/javascript" src="sqlparser.js"></script>
+</head>
+<body>
+<table id="books">
+    <tr>
+        <th>ISBN</th>
+        <th>Title</th>
+        <th>Author</th>
+        <th>Year</th>
+    </tr>
+    <tr>
+        <td>9780893910501</td>
+        <td>Understanding Computers and Cognition: A New Foundation for Design</td>
+        <td>Terry Winograd and Fernando Flores</td>
+        <td>1986</td>
+    </tr>
+    <tr>
+        <td>9780898599596</td>
+        <td>The Ecological Approach to Visual Perception</td>
+        <td>James Gibson</td>
+        <td>1986</td>
+    </tr>
+    <tr>
+        <td>9780521337397</td>
+        <td>Plans and Situated Actions: The Problem of Human-Machine Communication</td>
+        <td>Lucy Suchman</td>
+        <td>1987</td>
+    </tr>
+    <tr>
+        <td>9789519593326</td>
+        <td>PLearning By Expanding: An Activity-theoretical Approach To Developmental Research</td>
+        <td>Yrjö Engeström</td>
+        <td>1987</td>
+    </tr>
+    <tr>
+        <td>9780805805703</td>
+        <td>Through the Interface: A Human Activity Approach To User Interface Design</td>
+        <td>Susanne Bødker</td>
+        <td>1990</td>
+    </tr>
+    <tr>
+        <td>9780262540674</td>
+        <td>What Computers Still Can't Do: A Critique of Artificial Reason</td>
+        <td>Hubert Dreyfus</td>
+        <td>1992</td>
+    </tr>
+    <tr>
+        <td>9780201550603</td>
+        <td>Computers as Theatre</td>
+        <td>Brenda Laurel</td>
+        <td>1993</td>
+    </tr>
+    <tr>
+        <td>9780262581462</td>
+        <td>Cognition in the Wild</td>
+        <td>Edwin Hutchins</td>
+        <td>1996</td>
+    </tr>
+    <tr>
+        <td>9780486298955</td>
+        <td>How we think</td>
+        <td>John Dewey</td>
+        <td>1997</td>
+    </tr>
+    <tr>
+        <td>9780262260619</td>
+        <td>Where the Action Is: The Foundations of Embodied Interaction</td>
+        <td>Paul Dourish</td>
+        <td>2004</td>
+    </tr>
+</table>
+<input type="text" placeholder="SQL>">
+<script type="text/javascript">
+    var sqlInput = document.querySelector("input[type='text']")
+    var p = new SQLParser()
+    var query = p.parse("SELECT * FROM books WHERE year=1987;")
+
+    table = document.querySelector("table#"+query.tableName)
+    switch(query.type){
+        case "SELECT":
+            selectFields(query.fields)
+            queryRows(query.conditions)
+            break
+        default:
+            console.log("handle this idiot")
+    }
+
+    console.log(query)
+    sqlInput.addEventListener("keyup", function(e){
+        if(e.keyCode == 13){
+            console.log("enter")
+        }
+    })
+
+    function selectFields(fields){
+
+        //This should just go by indexes!
+        columns = fields
+        
+        if(query.fields.indexOf("*") != -1){
+            thCells = table.rows[0].cells
+            columns = []
+            for(var i = 0, n = thCells.length; i < n ; i++){
+                columns.push(thCells[i].innerHTML)
+            }
+        }
+        console.log(columns)
+    }
+
+    function queryRows(conditions){
+        rows = []
+        if(conditions.length == 0){
+            rows = [...table.rows]
+            rows = rows.shift()
+            console.log(rows)
+            return rows
+        }
+
+        for(var i = 0, n = conditions.length; i < n; i++){
+            condition = conditions[i]
+            let ci = getColumnIndexByName(condition.firstCondition)
+            console.log(ci)
+            for(var j = 0, m = table.rows.length; j < m; j++){
+                let row = table.rows[j]
+                if(row.cells[ci].innerHTML.toLowerCase() == condition.secondCondition.toLowerCase()){
+                    rows.push(j)
+                }
+            }
+        }
+
+        console.log(rows)
+    }
+
+    function getColumnIndexByName(name){
+        let thCells = table.rows[0].cells
+        for(var i = 0, n = thCells.length; i < n; i++){
+            let thCell = thCells[i]
+            if(thCell.innerHTML.toLowerCase() == name.toLowerCase()){
+                return i
+            }
+        }
+        return -1
+    }
+
+    /*
+        https://www.dcs.warwick.ac.uk/~hugh/TTM/HAVING-A-Blunderful-Time.html
+        https://stackoverflow.com/questions/5074044/shouldnt-from-come-before-select-in-sql
+        https://softwareengineering.stackexchange.com/questions/127706/why-is-the-select-before-the-from-in-an-sql-query
+        https://jvns.ca/blog/2019/10/03/sql-queries-don-t-start-with-select/
+        translating query to table operation
+    */
+
+
+
+</script>
+</body>
+</html>

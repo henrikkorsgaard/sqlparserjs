@@ -65,7 +65,7 @@ const (
 	stepWhereValue
 	stepWhereAnd
 )
-
+ithub.com/marianogappa/sqlparser/query
 type parser struct {
 	i               int
 	sql             string
