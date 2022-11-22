@@ -1,5 +1,5 @@
 
-const reservedWords = ["SELECT", "FROM", "WHERE"]
+const reservedWords = ["SELECT","FROM", "WHERE"]
 const steps = ["stepType", "stepSelectField", "stepSelectFrom","stepSelectComma","stepSelectFromTable", "stepWhere", "stepWhereField", "stepWhereOperator","stepWhereValue", "stepWhereAnd"]
 
 const indentifierRegExp = new RegExp('[a-zA-Z0-9_*]'); 
@@ -36,6 +36,7 @@ class SQLParser {
                     switch(this.peek().toUpperCase()){
                         case "SELECT":
                             this.query.type = "SELECT"
+                            this.pop()
                             this.step = steps.indexOf("stepSelectField")
                             break;
                         default: 
@@ -46,14 +47,16 @@ class SQLParser {
                     break;
                 case "stepSelectField":
                     let identifier = this.peek()
+                    console.log(identifier)
                     // the other library does an additional check here, but I don't know why
                     this.query.fields.push(identifier)
+                    this.pop()
                     // Additional step to implement "AS" do later
                     if(this.peek().toUpperCase() == "FROM"){
-                        this.steps.indexOf("stepSelectFrom")
+                        this.step = steps.indexOf("stepSelectFrom")
                         break
                     }
-                    this.steps.indexOf("stepSelectComma")
+                    this.step = steps.indexOf("stepSelectComma")
                     break;
                 case "stepSelectComma":
                     let comma = this.peek()
@@ -61,9 +64,47 @@ class SQLParser {
                         run = false
                         console.log("Error here because we did not get comma and next word cannot be keyword because we already skipped that step above. Hence, an error is needed")
                     }
-                    //WE NEED TO SEPERATE POP HERE BECAUSE WE ARE DOING BOTH CHECKS AND IDENTIFICATION WITH PEEK. AND SOMETHMES WE JUST CHECK AND DON'T WANT TO REMOVE STUFF
-                    this.steps.indexOf("stepSelectField") //if there is a comma, we expect the next field. 
-                    break 
+                    this.pop()
+                    this.step = steps.indexOf("stepSelectField")
+                    break
+                case "stepSelectFrom":
+                    let from = this.peek().toUpperCase()
+                    if(from != "FROM"){
+                        console.log("this should never happen")
+                        run = false
+                        break
+                    }
+                    this.pop()
+                    this.step = steps.indexOf("stepSelectFromTable")
+                    break
+                case "stepSelectFromTable":
+                    let tableName = this.peek()
+                    if(tableName.length == 0){
+                        console.log("errorhandling is for later, eh")
+                        run = false
+                        break;
+                    }
+                    this.query.tableName = tableName
+                    console.log(tableName)
+                    this.pop()
+                    this.step = steps.indexOf("stepWhere")
+                case "stepWhere":
+                    let whereWord = this.peek()
+                    if(whereWord.toUpperCase() != "WHERE"){
+                        console.log("again, a very unlikely that this is not WHERE")
+                        run = false
+                        break
+                    }
+                    this.pop()
+                    this.step = steps.indexOf("stepWhereField")
+                    break
+                case "stepWhereField":
+                    identifier = this.peek()
+                    //this.query.conditions.push() // I NEED TO FIGURE THIS OUT
+                    this.pop()
+                    this.step = steps.indexOf("stepWhereOperator")
+                    break
+                case "stepWhereOperator"
                 default:
                     console.log(steps[this.step])
                     console.log("we need another error here")
@@ -77,41 +118,54 @@ class SQLParser {
     //peek, peekwithlength, pop, etc. 
 
     peek() {
-        let peeked = ""
-        let len = 0
-        if(this.index < this.sql.length){
-            reservedWords.every(w => {
-                
-                let token = this.sql.substring(this.index,w.length)
-                if(w == token){
-                    peeked = token
-                    len = token.length
-                    return true
-                }
-            })
-        }
+        return this.peekCases()
+    }
 
-        if(peeked == "" && this.sql[this.index] == '\''){
-            //Future special case
-        }
-
-        if(peeked == ""){
-            for(var i = this.index; i < this.sql.length;i++){
-                if(this.sql[i].match(indentifierRegExp)){ //there is some mombo
-                    peeked = this.sql[this.index, i]
-                    len = this.sql[this.index, i].length
-                    break;
-                }
-            }
-        }
-
-        this.index += len
+    pop(){
+        let peeked = this.peekCases()
+        this.index += peeked.length
         //deal with with the whitespace
         for(;this.index < this.sql.length && this.sql[this.index] == ' '; this.index++){}
-        // we might need to handle quoited strings per golang example l. 402
-        return peeked
+        return
     }
+
+    peekCases(){
+        if(this.index >= this.sql.length){
+            return peeked
+        }
+        
+        for(var i = 0; i < reservedWords.length; i++){
+            let w = reservedWords[i]
+            
+            let token = this.sql.substring(this.index,this.index + w.length)
+            if(w == token){
+                return token
+            }
+        }
+        
+        if(this.sql[this.index] == '\''){
+            //Future special case
+            return ""
+                
+        }
+        return this.peekIdentifier()
+    }
+
+    peekIdentifier(){
+     
+        for(var i = this.index; i < this.sql.length;i++){
+            if(!this.sql[i].match(indentifierRegExp)){ //there is some mombo
+                return this.sql.substring(this.index,i)
+            }
+        }
+        console.log("never expected to get this far eh")
+        return this.sql[this.index, this.sql.length]
+    }
+
+    peekQuotedString(){}
 }
+
+
 
 p = new SQLParser()
 p.parse("SELECT * FROM table WHERE id=2")
