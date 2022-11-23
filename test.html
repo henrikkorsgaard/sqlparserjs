@@ -1,285 +1,314 @@
 <!DOCTYPE html>
+
 <head>
-<script type="text/javascript" src="sqlparser.js"></script>
-<style>
-    body {
-        margin:0px auto;
-        text-align:center;
-    }
+    <script type="text/javascript" src="sqlparser.js"></script>
+    <style>
+        body {
+            margin: 0px auto;
+            text-align: center;
+        }
 
-    table#output {
-        text-align:left;
-        border-collapse: collapse;
-        margin: 20px 10px;
-        box-sizing:border-box;
-        display:none;
-    }
+        table#output {
+            text-align: left;
+            border-collapse: collapse;
+            margin: 20px 10px;
+            box-sizing: border-box;
+            display: none;
+        }
 
-    table#output.show {
-        display:initial;
-    }
+        table#output.show {
+            display: initial;
+        }
 
-    table#Books {
-        text-align:left;
-        width:98%;
-        border-collapse: collapse;
-        margin: 20px 10px;
-        box-sizing:border-box;
-    }
+        table#Books {
+            text-align: left;
+            width: 98%;
+            border-collapse: collapse;
+            margin: 20px 10px;
+            box-sizing: border-box;
+        }
 
-    table td, table th{
-        padding:5px 10px;
-        border:1px solid black;
-    }
+        table td,
+        table th {
+            padding: 5px 10px;
+            border: 1px solid black;
+        }
 
-    table th {
-        color: white;
-        background: #666;
-    }
-    table#Books td.bingo {background:lightblue;}
-    table caption {  caption-side: bottom; margin-top:10px; font-size:1.1em; }
-    
-    input[type="text"] {
-        text-align:left;
-        padding:5px;
-        font-size:1.2em;
-        font-family:monospace;
-        width:90%;
-        margin-bottom: 20px;
-    }
-</style>
+        table th {
+            color: white;
+            background: #666;
+        }
+
+        table#Books td.bingo {
+            background: lightblue;
+        }
+
+        table caption {
+            caption-side: bottom;
+            margin-top: 10px;
+            font-size: 1.1em;
+        }
+
+        input[type="text"] {
+            text-align: left;
+            padding: 5px;
+            font-size: 1.2em;
+            font-family: monospace;
+            width: 90%;
+            margin-bottom: 20px;
+        }
+    </style>
 </head>
+
 <body>
-<table id="Books">
-    <caption>Table 1: Books table</caption>
-    <tr>
-        <th>ISBN</th>
-        <th>Title</th>
-        <th>Author</th>
-        <th>Year</th>
-    </tr>
-    <tr>
-        <td>9780893910501</td>
-        <td>Understanding Computers and Cognition: A New Foundation for Design</td>
-        <td>Terry Winograd and Fernando Flores</td>
-        <td>1986</td>
-    </tr>
-    <tr>
-        <td>9780898599596</td>
-        <td>The Ecological Approach to Visual Perception</td>
-        <td>James Gibson</td>
-        <td>1986</td>
-    </tr>
-    <tr>
-        <td>9780521337397</td>
-        <td>Plans and Situated Actions: The Problem of Human-Machine Communication</td>
-        <td>Lucy Suchman</td>
-        <td>1987</td>
-    </tr>
-    <tr>
-        <td>9789519593326</td>
-        <td>PLearning By Expanding: An Activity-theoretical Approach To Developmental Research</td>
-        <td>Yrjö Engeström</td>
-        <td>1987</td>
-    </tr>
-    <tr>
-        <td>9780805805703</td>
-        <td>Through the Interface: A Human Activity Approach To User Interface Design</td>
-        <td>Susanne Bødker</td>
-        <td>1990</td>
-    </tr>
-    <tr>
-        <td>9780262540674</td>
-        <td>What Computers Still Can't Do: A Critique of Artificial Reason</td>
-        <td>Hubert Dreyfus</td>
-        <td>1992</td>
-    </tr>
-    <tr>
-        <td>9780201550603</td>
-        <td>Computers as Theatre</td>
-        <td>Brenda Laurel</td>
-        <td>1993</td>
-    </tr>
-    <tr>
-        <td>9780262581462</td>
-        <td>Cognition in the Wild</td>
-        <td>Edwin Hutchins</td>
-        <td>1996</td>
-    </tr>
-    <tr>
-        <td>9780486298955</td>
-        <td>How we think</td>
-        <td>John Dewey</td>
-        <td>1997</td>
-    </tr>
-    <tr>
-        <td>9780262260619</td>
-        <td>Where the Action Is: The Foundations of Embodied Interaction</td>
-        <td>Paul Dourish</td>
-        <td>2004</td>
-    </tr>
-</table>
-<input type="text" placeholder="SQL>">
-<table id="output">
-    <caption>Table 2: Result table</caption>
-</table>
-<script type="text/javascript">
-    var sqlInput = document.querySelector("input[type='text']")
-    sqlInput.value = ""
-    var sqlOutput = document.querySelector("table#output")
-    
-    var conditionalOps = [
-        function(a,b){ return a == b},
-        function(a,b){ return a != b},
-        function(a,b){ return a > b},
-        function(a,b){ return a < b},
-        function(a,b){ return a >= b},
-        function(a,b){ return a <= b}
-    ]
-
-    let testQuery = "SELECT Title, Year FROM Books;" //Write more queries to cycle through.
-    testIndex = 0
-    var testInterval = setInterval(function(){
-        sqlInput.value += testQuery[testIndex]
-        testIndex++;
-        if(testIndex >= testQuery.length){
-            clearInterval(testInterval)
-            testIndex = 0
-            interactWithTableDB(sqlInput.value)
-        }
-    }, 100)
-
-    sqlInput.addEventListener("focus", function(e){
-        if(testIndex != 0){
-            clearInterval(testInterval)
-            testIndex = 0
-            
-        }
+    <table id="Books">
+        <caption>Table 1: Books table</caption>
+        <tr>
+            <th>ISBN</th>
+            <th>Title</th>
+            <th>Author</th>
+            <th>Year</th>
+        </tr>
+        <tr>
+            <td>9780893910501</td>
+            <td>Understanding Computers and Cognition: A New Foundation for Design</td>
+            <td>Terry Winograd and Fernando Flores</td>
+            <td>1986</td>
+        </tr>
+        <tr>
+            <td>9780898599596</td>
+            <td>The Ecological Approach to Visual Perception</td>
+            <td>James Gibson</td>
+            <td>1986</td>
+        </tr>
+        <tr>
+            <td>9780521337397</td>
+            <td>Plans and Situated Actions: The Problem of Human-Machine Communication</td>
+            <td>Lucy Suchman</td>
+            <td>1987</td>
+        </tr>
+        <tr>
+            <td>9789519593326</td>
+            <td>PLearning By Expanding: An Activity-theoretical Approach To Developmental Research</td>
+            <td>Yrjö Engeström</td>
+            <td>1987</td>
+        </tr>
+        <tr>
+            <td>9780805805703</td>
+            <td>Through the Interface: A Human Activity Approach To User Interface Design</td>
+            <td>Susanne Bødker</td>
+            <td>1990</td>
+        </tr>
+        <tr>
+            <td>9780262540674</td>
+            <td>What Computers Still Can't Do: A Critique of Artificial Reason</td>
+            <td>Hubert Dreyfus</td>
+            <td>1992</td>
+        </tr>
+        <tr>
+            <td>9780201550603</td>
+            <td>Computers as Theatre</td>
+            <td>Brenda Laurel</td>
+            <td>1993</td>
+        </tr>
+        <tr>
+            <td>9780262581462</td>
+            <td>Cognition in the Wild</td>
+            <td>Edwin Hutchins</td>
+            <td>1996</td>
+        </tr>
+        <tr>
+            <td>9780486298955</td>
+            <td>How we think</td>
+            <td>John Dewey</td>
+            <td>1997</td>
+        </tr>
+        <tr>
+            <td>9780262260619</td>
+            <td>Where the Action Is: The Foundations of Embodied Interaction</td>
+            <td>Paul Dourish</td>
+            <td>2004</td>
+        </tr>
+    </table>
+    <input type="text" placeholder="SQL>">
+    <table id="output">
+        <caption>Table 2: Result table</caption>
+    </table>
+    <script type="text/javascript">
+        var sqlInput = document.querySelector("input[type='text']")
         sqlInput.value = ""
-    })
+        var sqlOutput = document.querySelector("table#output")
 
-    sqlInput.addEventListener("keyup", function(e){
-        if(e.keyCode == 13){
-            interactWithTableDB(sqlInput.value)
+        var conditionalOps = [
+            function (a, b) { return a == b },
+            function (a, b) { return a != b },
+            function (a, b) { return a > b },
+            function (a, b) { return a < b },
+            function (a, b) { return a >= b },
+            function (a, b) { return a <= b }
+        ]
+
+        let playQueries = ["SELECT Title, Year FROM Books;", "SELECT * FROM Books WHERE Year = 1987;", "SELECT Title, Author, Year FROM Books WHERE Author='John Dewey';"]
+        let timer
+        function play() {
+            let count = 0
+            let index = 0
+            
+            function dynamicTimer(){
+                if(index == 0){
+                    sqlInput.value = ""
+                }
+                sqlInput.value += playQueries[count][index]
+                index++
+                timeToCall = 100
+                if (index >= playQueries[count].length) {
+                    console.log("here")
+                    index = 0
+                    interactWithTableDB(sqlInput.value)
+                    count++
+                    if (count === playQueries.length) {
+                            count = 0
+                    }
+                    timeToCall = 1000
+                }
+                
+                timer = setTimeout(dynamicTimer, timeToCall)
+            
+            }
+            dynamicTimer()
         }
-    })
+        play()
+    
+        sqlInput.addEventListener("focus", function (e) {
+            clearTimeout(timer)
+            sqlInput.value = ""
+            index = 0
+            
+        })
 
-    function interactWithTableDB(queryString){
-        var p = new SQLParser()
-        query = p.parse(queryString)
-        table = document.querySelector("table#"+query.tableName)
-        switch(query.type){
-        case "SELECT":
-            columns = selectFields(query.fields)
-            rows = queryRows(query.conditions)
-            visualizeQueryResult(rows, columns)
-            printQueryResult(rows, columns)
-            break
-        default:
-            console.log("handle this, you idiot")
+        sqlInput.addEventListener("keyup", function (e) {
+            if (e.keyCode == 13) {
+                interactWithTableDB(sqlInput.value)
+            }
+        })
+
+        function interactWithTableDB(queryString) {
+            var p = new SQLParser()
+            query = p.parse(queryString)
+            table = document.querySelector("table#" + query.tableName)
+            switch (query.type) {
+                case "SELECT":
+                    columns = selectFields(query.fields)
+                    rows = queryRows(query.conditions)
+                    visualizeQueryResult(rows, columns)
+                    printQueryResult(rows, columns)
+                    break
+                default:
+                    console.log("handle this, you idiot")
+            }
         }
-    }
 
-    function selectFields(fields){
-        columns = []
-        
-        if(query.fields.indexOf("*") != -1){
-            for(var i = 0, n = table.rows[0].cells.length; i < n ; i++){
-                columns.push(i)
+        function selectFields(fields) {
+            columns = []
+
+            if (query.fields.indexOf("*") != -1) {
+                for (var i = 0, n = table.rows[0].cells.length; i < n; i++) {
+                    columns.push(i)
+                }
+                return columns
+            }
+
+            for (var i = 0, n = fields.length; i < n; i++) {
+                index = getColumnIndexByName(fields[i])
+                if (index != -1) {
+                    columns.push(index)
+                }
             }
             return columns
         }
 
-        for(var i = 0, n = fields.length; i < n; i++){
-            index = getColumnIndexByName(fields[i])
-            if(index != -1){
-                columns.push(index)
-            }
-        }
-        return columns
-    }
+        function queryRows(conditions) {
+            rows = []
+            if (conditions.length == 0) {
+                for (var i = 1, n = table.rows.length; i < n; i++) {
+                    rows.push(i)
+                }
 
-    function queryRows(conditions){
-        rows = []
-        if(conditions.length == 0){
-            for(var i = 1, n = table.rows.length; i < n; i++){
-                rows.push(i)
+                return rows
             }
-           
+
+            for (var i = 1, n = table.rows.length; i < n; i++) {
+                row = table.rows[i]
+                checks = Array(conditions.length).fill(0)
+                for (var ii = 0, nn = conditions.length; ii < nn; ii++) {
+                    let condition = conditions[ii]
+                    let ci = getColumnIndexByName(condition.firstCondition)
+                    //We need to typecheck here and cast with potential error
+                    //so many dirty tricks here
+                    checks[ii] = +conditionalOps[condition.operator](row.cells[ci].innerHTML, condition.secondCondition)
+                }
+                total = checks.reduce((a, b) => a + b, 0)
+                if (total == conditions.length) {
+                    rows.push(i)
+                }
+            }
             return rows
         }
 
-        for(var i = 1, n = table.rows.length; i < n; i++){
-            row = table.rows[i]
-            checks = Array(conditions.length).fill(0)
-            for(var ii = 0, nn = conditions.length; ii < nn ; ii++){
-                let condition = conditions[ii]
-                let ci = getColumnIndexByName(condition.firstCondition)
-                //We need to typecheck here and cast with potential error
-                //so many dirty tricks here
-                checks[ii] = +conditionalOps[condition.operator](row.cells[ci].innerHTML,condition.secondCondition)
+        function getColumnIndexByName(name) {
+            let thCells = table.rows[0].cells
+            for (var i = 0, n = thCells.length; i < n; i++) {
+                let thCell = thCells[i]
+                if (thCell.innerHTML.toLowerCase() == name.toLowerCase()) {
+                    return i
+                }
             }
-            total = checks.reduce((a, b) => a + b, 0)
-            if(total == conditions.length){
-                rows.push(i)
-            }
+            return -1
         }
-        return rows
-    }
 
-    function getColumnIndexByName(name){
-        let thCells = table.rows[0].cells
-        for(var i = 0, n = thCells.length; i < n; i++){
-            let thCell = thCells[i]
-            if(thCell.innerHTML.toLowerCase() == name.toLowerCase()){
-                return i
-            }
+        function visualizeQueryResult(rows, columns) {
+            Array.from(document.querySelectorAll('.bingo')).forEach((el) => el.classList.remove('bingo'));
+            rows.forEach(ri => {
+                columns.forEach(ci => {
+                    table.rows[ri].cells[ci].classList.add("bingo")
+                })
+            })
         }
-        return -1
-    }
 
-    function visualizeQueryResult(rows, columns){
-        Array.from(document.querySelectorAll('.bingo')).forEach((el) => el.classList.remove('bingo'));
-        rows.forEach(ri =>{
-            columns.forEach(ci =>{
-                table.rows[ri].cells[ci].classList.add("bingo")
+        function printQueryResult(rows, columns) {
+            sqlOutput.innerHTML = "<caption>Table 2: Result table</caption>"
+
+            html = "<tr>"
+
+            columns.forEach(ci => {
+                html += "<th>" + table.rows[0].cells[ci].innerHTML + "</th>"
             })
-        })
-    }
 
-    function printQueryResult(rows, columns){
-        sqlOutput.innerHTML = "<caption>Table 2: Result table</caption>"
-
-        html = "<tr>"
-
-        columns.forEach(ci =>{
-            html += "<th>"+table.rows[0].cells[ci].innerHTML+"</th>"
-        })
-
-        html += "</tr>"
-
-        rows.forEach(ri =>{
-            html += "<tr>"
-            columns.forEach(ci =>{
-                html += "<td>"+table.rows[ri].cells[ci].innerHTML+"</td>"
-            })
             html += "</tr>"
-        })
 
-        sqlOutput.innerHTML += html
-        //sqlOutput.classList.add("show")
-    }
+            rows.forEach(ri => {
+                html += "<tr>"
+                columns.forEach(ci => {
+                    html += "<td>" + table.rows[ri].cells[ci].innerHTML + "</td>"
+                })
+                html += "</tr>"
+            })
 
-    /*
-        https://www.dcs.warwick.ac.uk/~hugh/TTM/HAVING-A-Blunderful-Time.html
-        https://stackoverflow.com/questions/5074044/shouldnt-from-come-before-select-in-sql
-        https://softwareengineering.stackexchange.com/questions/127706/why-is-the-select-before-the-from-in-an-sql-query
-        https://jvns.ca/blog/2019/10/03/sql-queries-don-t-start-with-select/
-        translating query to table operation
-    */
+            sqlOutput.innerHTML += html
+            //sqlOutput.classList.add("show")
+        }
+
+        /*
+            https://www.dcs.warwick.ac.uk/~hugh/TTM/HAVING-A-Blunderful-Time.html
+            https://stackoverflow.com/questions/5074044/shouldnt-from-come-before-select-in-sql
+            https://softwareengineering.stackexchange.com/questions/127706/why-is-the-select-before-the-from-in-an-sql-query
+            https://jvns.ca/blog/2019/10/03/sql-queries-don-t-start-with-select/
+            translating query to table operation
+        */
 
 
 
-</script>
+    </script>
 </body>
+
 </html>
