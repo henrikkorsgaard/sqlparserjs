@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-
+<meta charset="UTF-8">
 <head>
     <script type="text/javascript" src="sqlparser.js"></script>
     <style>
@@ -20,7 +20,7 @@
             display: initial;
         }
 
-        table#Books {
+        table#books {
             text-align: left;
             width: 98%;
             border-collapse: collapse;
@@ -39,7 +39,7 @@
             background: #666;
         }
 
-        table#Books td.bingo {
+        table#books td.bingo {
             background: lightblue;
         }
 
@@ -76,92 +76,26 @@
 -->
 
 <body>
-    <table id="Books">
-        <caption>Table 1: Books table</caption>
-        <tr>
-            <th>ISBN</th>
-            <th>Title</th>
-            <th>Author</th>
-            <th>Year</th>
-        </tr>
-        <tr>
-            <td>9780893910501</td>
-            <td>Understanding Computers and Cognition: A New Foundation for Design</td>
-            <td>Terry Winograd and Fernando Flores</td>
-            <td>1986</td>
-        </tr>
-        <tr>
-            <td>9780898599596</td>
-            <td>The Ecological Approach to Visual Perception</td>
-            <td>James Gibson</td>
-            <td>1986</td>
-        </tr>
-        <tr>
-            <td>9780521337397</td>
-            <td>Plans and Situated Actions: The Problem of Human-Machine Communication</td>
-            <td>Lucy Suchman</td>
-            <td>1987</td>
-        </tr>
-        <tr>
-            <td>9789519593326</td>
-            <td>Learning By Expanding: An Activity-theoretical Approach To Developmental Research</td>
-            <td>Yrjö Engeström</td>
-            <td>1987</td>
-        </tr>
-        <tr>
-            <td>9780805805703</td>
-            <td>Through the Interface: A Human Activity Approach To User Interface Design</td>
-            <td>Susanne Bødker</td>
-            <td>1990</td>
-        </tr>
-        <tr>
-            <td>9780262540674</td>
-            <td>What Computers Still Can't Do: A Critique of Artificial Reason</td>
-            <td>Hubert Dreyfus</td>
-            <td>1992</td>
-        </tr>
-        <tr>
-            <td>9780201550603</td>
-            <td>Computers as Theatre</td>
-            <td>Brenda Laurel</td>
-            <td>1993</td>
-        </tr>
-        <tr>
-            <td>9780262581462</td>
-            <td>Cognition in the Wild</td>
-            <td>Edwin Hutchins</td>
-            <td>1996</td>
-        </tr>
-        <tr>
-            <td>9780486298955</td>
-            <td>How we think</td>
-            <td>John Dewey</td>
-            <td>1910</td>
-        </tr>
-        <tr>
-            <td>9780262260619</td>
-            <td>Where the Action Is: The Foundations of Embodied Interaction</td>
-            <td>Paul Dourish</td>
-            <td>2004</td>
-        </tr>
-    </table>
+    
     <input type="text" placeholder="SQL>">
     <table id="output">
         <caption>Table 2: Result table</caption>
     </table>
 
     <script type="text/javascript">
-        let csvParser = new CSVFileParser("books.csv")
+        let db = new Database()
+        db.insertFromCSV("books.csv")
 
+        var html = db.generateHTMLTableFromDBTable("books")
+        document.body.prepend(html)
     </script>
-
 
     <script type="text/javascript">
         var sqlInput = document.querySelector("input[type='text']")
         sqlInput.value = ""
         var sqlOutput = document.querySelector("table#output")
 
-        let playQueries = ["SELECT Title, Year FROM Books;", "SELECT * FROM Books WHERE Year = 1987;", "SELECT Title, Author, Year FROM Books WHERE Author='John Dewey';","SELECT Title,Year FROM Books WHERE Year > 1987;"]
+        let playQueries = ["SELECT Title, Year FROM books;", "SELECT * FROM books WHERE Year = 1987;", "SELECT Title, Author, Year FROM books WHERE Author='John Dewey';","SELECT Title,Year FROM books WHERE Year > 1987;"]
         let timer
         function play() {
             let count = 0
@@ -189,7 +123,7 @@
             }
             dynamicTimer()
         }
-        play()
+        //play()
     
         sqlInput.addEventListener("focus", function (e) {
             clearTimeout(timer)
@@ -200,6 +134,7 @@
         sqlInput.addEventListener("keyup", function (e) {
             if (e.keyCode == 13) {
                 interactWithTableDB(sqlInput.value)
+                db.querySQL(sqlInput.value)
             }
         })
 
