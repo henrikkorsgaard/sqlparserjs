@@ -49,6 +49,7 @@ class SQLParser {
     /*
         TODO:
         - ERROR HANDLING
+        - RETURN QUERY AT EACH STEP
     */
 
     parse(sql){
