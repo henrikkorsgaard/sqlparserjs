@@ -1,9 +1,57 @@
 <!DOCTYPE html>
 <head>
 <script type="text/javascript" src="sqlparser.js"></script>
+<style>
+    body {
+        margin:0px auto;
+        text-align:center;
+    }
+
+    table#output {
+        text-align:left;
+        border-collapse: collapse;
+        margin: 20px 10px;
+        box-sizing:border-box;
+        display:none;
+    }
+
+    table#output.show {
+        display:initial;
+    }
+
+    table#Books {
+        text-align:left;
+        width:98%;
+        border-collapse: collapse;
+        margin: 20px 10px;
+        box-sizing:border-box;
+    }
+
+    table td, table th{
+        padding:5px 10px;
+        border:1px solid black;
+    }
+
+    table th {
+        color: white;
+        background: #666;
+    }
+    table#Books td.bingo {background:lightblue;}
+    table caption {  caption-side: bottom; margin-top:10px; font-size:1.1em; }
+    
+    input[type="text"] {
+        text-align:left;
+        padding:5px;
+        font-size:1.2em;
+        font-family:monospace;
+        width:90%;
+        margin-bottom: 20px;
+    }
+</style>
 </head>
 <body>
-<table id="books">
+<table id="Books">
+    <caption>Table 1: Books table</caption>
     <tr>
         <th>ISBN</th>
         <th>Title</th>
@@ -72,65 +120,111 @@
     </tr>
 </table>
 <input type="text" placeholder="SQL>">
+<table id="output">
+    <caption>Table 2: Result table</caption>
+</table>
 <script type="text/javascript">
     var sqlInput = document.querySelector("input[type='text']")
-    var p = new SQLParser()
-    var query = p.parse("SELECT * FROM books WHERE year=1987;")
+    sqlInput.value = ""
+    var sqlOutput = document.querySelector("table#output")
+    
+    var conditionalOps = [
+        function(a,b){ return a == b},
+        function(a,b){ return a != b},
+        function(a,b){ return a > b},
+        function(a,b){ return a < b},
+        function(a,b){ return a >= b},
+        function(a,b){ return a <= b}
+    ]
 
-    table = document.querySelector("table#"+query.tableName)
-    switch(query.type){
-        case "SELECT":
-            selectFields(query.fields)
-            queryRows(query.conditions)
-            break
-        default:
-            console.log("handle this idiot")
-    }
+    let testQuery = "SELECT Title, Year FROM Books;" //Write more queries to cycle through.
+    testIndex = 0
+    var testInterval = setInterval(function(){
+        sqlInput.value += testQuery[testIndex]
+        testIndex++;
+        if(testIndex >= testQuery.length){
+            clearInterval(testInterval)
+            testIndex = 0
+            interactWithTableDB(sqlInput.value)
+        }
+    }, 100)
 
-    console.log(query)
+    sqlInput.addEventListener("focus", function(e){
+        if(testIndex != 0){
+            clearInterval(testInterval)
+            testIndex = 0
+            
+        }
+        sqlInput.value = ""
+    })
+
     sqlInput.addEventListener("keyup", function(e){
         if(e.keyCode == 13){
-            console.log("enter")
+            interactWithTableDB(sqlInput.value)
         }
     })
 
-    function selectFields(fields){
+    function interactWithTableDB(queryString){
+        var p = new SQLParser()
+        query = p.parse(queryString)
+        table = document.querySelector("table#"+query.tableName)
+        switch(query.type){
+        case "SELECT":
+            columns = selectFields(query.fields)
+            rows = queryRows(query.conditions)
+            visualizeQueryResult(rows, columns)
+            printQueryResult(rows, columns)
+            break
+        default:
+            console.log("handle this, you idiot")
+        }
+    }
 
-        //This should just go by indexes!
-        columns = fields
+    function selectFields(fields){
+        columns = []
         
         if(query.fields.indexOf("*") != -1){
-            thCells = table.rows[0].cells
-            columns = []
-            for(var i = 0, n = thCells.length; i < n ; i++){
-                columns.push(thCells[i].innerHTML)
+            for(var i = 0, n = table.rows[0].cells.length; i < n ; i++){
+                columns.push(i)
+            }
+            return columns
+        }
+
+        for(var i = 0, n = fields.length; i < n; i++){
+            index = getColumnIndexByName(fields[i])
+            if(index != -1){
+                columns.push(index)
             }
         }
-        console.log(columns)
+        return columns
     }
 
     function queryRows(conditions){
         rows = []
         if(conditions.length == 0){
-            rows = [...table.rows]
-            rows = rows.shift()
-            console.log(rows)
+            for(var i = 1, n = table.rows.length; i < n; i++){
+                rows.push(i)
+            }
+           
             return rows
         }
 
-        for(var i = 0, n = conditions.length; i < n; i++){
-            condition = conditions[i]
-            let ci = getColumnIndexByName(condition.firstCondition)
-            console.log(ci)
-            for(var j = 0, m = table.rows.length; j < m; j++){
-                let row = table.rows[j]
-                if(row.cells[ci].innerHTML.toLowerCase() == condition.secondCondition.toLowerCase()){
-                    rows.push(j)
-                }
+        for(var i = 1, n = table.rows.length; i < n; i++){
+            row = table.rows[i]
+            checks = Array(conditions.length).fill(0)
+            for(var ii = 0, nn = conditions.length; ii < nn ; ii++){
+                let condition = conditions[ii]
+                let ci = getColumnIndexByName(condition.firstCondition)
+                //We need to typecheck here and cast with potential error
+                //so many dirty tricks here
+                checks[ii] = +conditionalOps[condition.operator](row.cells[ci].innerHTML,condition.secondCondition)
+            }
+            total = checks.reduce((a, b) => a + b, 0)
+            if(total == conditions.length){
+                rows.push(i)
             }
         }
-
-        console.log(rows)
+        return rows
     }
 
     function getColumnIndexByName(name){
@@ -142,6 +236,38 @@
             }
         }
         return -1
+    }
+
+    function visualizeQueryResult(rows, columns){
+        Array.from(document.querySelectorAll('.bingo')).forEach((el) => el.classList.remove('bingo'));
+        rows.forEach(ri =>{
+            columns.forEach(ci =>{
+                table.rows[ri].cells[ci].classList.add("bingo")
+            })
+        })
+    }
+
+    function printQueryResult(rows, columns){
+        sqlOutput.innerHTML = "<caption>Table 2: Result table</caption>"
+
+        html = "<tr>"
+
+        columns.forEach(ci =>{
+            html += "<th>"+table.rows[0].cells[ci].innerHTML+"</th>"
+        })
+
+        html += "</tr>"
+
+        rows.forEach(ri =>{
+            html += "<tr>"
+            columns.forEach(ci =>{
+                html += "<td>"+table.rows[ri].cells[ci].innerHTML+"</td>"
+            })
+            html += "</tr>"
+        })
+
+        sqlOutput.innerHTML += html
+        //sqlOutput.classList.add("show")
     }
 
     /*

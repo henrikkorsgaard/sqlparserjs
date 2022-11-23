@@ -1,5 +1,5 @@
 
-const reservedWords = ["SELECT","FROM", "WHERE", ">=", "<=", "!=", ",", "=", ">", "<"]
+const reservedWords = ["SELECT","FROM", "WHERE", ">=", "<=", "!=", ",", "=", ">", "<", "(", ")"]
 const steps = ["stepType", "stepSelectField", "stepSelectFrom","stepSelectComma","stepSelectFromTable", "stepWhere", "stepWhereField", "stepWhereOperator","stepWhereValue", "stepWhereAnd"]
 
 const indentifierRegExp = new RegExp('[a-zA-Z0-9_*]'); 
@@ -13,13 +13,13 @@ class SQLException {
 
 class Condition {
     
-    static Unknown = 0
-    static Eq = 1
-    static Ne = 2
-    static Gt = 3
-    static Lt = 4
-    static Gte = 5
-    static Lte = 6
+    static Unknown = -1
+    static Eq = 0
+    static Ne = 1
+    static Gt = 2
+    static Lt = 3
+    static Gte = 4
+    static Lte = 5
 
     constructor(firstCondition){
         this.firstCondition = firstCondition
@@ -46,6 +46,11 @@ class SQLParser {
         this.err = null
     }
 
+    /*
+        TODO:
+        - ERROR HANDLING
+    */
+
     parse(sql){
         this.sql = sql
         if(this.sql[this.sql.length-1] != ";"){
@@ -57,7 +62,6 @@ class SQLParser {
             if(this.sql[this.index] == ";") {
                 return this.query
             }
-            console.log("running here", steps[this.step])
             switch(steps[this.step]) {
                 case "stepType":
                     switch(this.peek().toUpperCase()){
@@ -169,8 +173,17 @@ class SQLParser {
                         currentCondition.secondCondition = identifier
                         this.query.conditions[this.query.conditions.length-1] = currentCondition
                         this.pop()
+                        this.step = steps.indexOf("stepWhereAnd")
                         break;
                     }
+                case "stepWhereAnd":
+                    let andWord = this.peek()
+                    if(andWord.toUpperCase() != "AND"){
+                        console.log("error must handle")
+                    }
+                    this.pop()
+                    this.step = steps.indexOf("stepWhereField")
+                    break;
                 default:
                     console.log("we need another error here")
                     run = false
@@ -178,22 +191,23 @@ class SQLParser {
             }
         }
     }
-    
+   
     peek() {
-        return this.peekCases()
+        return this.peekCases()[0]
     }
 
     pop(){
-        let peeked = this.peekCases()
-        this.index += peeked.length
-        //deal with with the whitespace
+        let peekedLength = this.peekCases()
+        let peeked = peekedLength[0]
+        this.index += peekedLength[1]
+        //deal with  the whitespace
         for(;this.index < this.sql.length && this.sql[this.index] == ' '; this.index++){}
         return
     }
 
     peekCases(){
         if(this.index >= this.sql.length){
-            return peeked
+            return ["",0]
         }
         
         for(var i = 0; i < reservedWords.length; i++){
@@ -201,29 +215,58 @@ class SQLParser {
             
             let token = this.sql.substring(this.index,this.index + w.length)
             if(w == token){
-                return token
+                return [token, token.length]
             }
         }
         
         if(this.sql[this.index] == '\''){
-            //Future special case
-            return ""
+            return this.peekQuotedString()
                 
         }
+
         return this.peekIdentifier()
     }
 
     peekIdentifier(){
      
         for(var i = this.index; i < this.sql.length;i++){
-            if(!this.sql[i].match(indentifierRegExp)){ //there is some mombo
-                return this.sql.substring(this.index,i)
+            if(!this.sql[i].match(indentifierRegExp)){ 
+                let identifier = this.sql.substring(this.index,i)
+                return [identifier, identifier.length]
             }
         }
-        return this.sql[this.index, this.sql.length-1]
-    }
 
-    peekQuotedString(){}
+        let identifier = [this.index, this.sql.length-1]
+        
+        return [identifier, identifier.length]
+    }
+    /*
+    func (p *parser) peekQuotedStringWithLength() (string, int) {
+        if len(p.sql) < p.i || p.sql[p.i] != '\'' {
+            return "", 0
+        }
+        for i := p.i + 1; i < len(p.sql); i++ {
+            if p.sql[i] == '\'' && p.sql[i-1] != '\\' {
+                return p.sql[p.i+1 : i], len(p.sql[p.i+1:i]) + 2 // +2 for the two quotes
+            }
+        }
+        return "", 0
+    }*/
+
+    peekQuotedString(){
+        if(this.sql.length < this.index || this.sql[this.index] != '\''){
+            return ["",0]
+        }
+
+        for(var i = this.index+1; i < this.sql.length; i++){
+            if(this.sql[i] == '\'' && this.sql[i-1] != '\\'){
+                let identifier = this.sql.substring(this.index+1, i)
+                return [identifier, identifier.length+2] 
+            }
+        }
+
+        return ["",0]
+    }
 
 }
 
