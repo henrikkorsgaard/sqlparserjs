@@ -104,7 +104,7 @@
         </tr>
         <tr>
             <td>9789519593326</td>
-            <td>PLearning By Expanding: An Activity-theoretical Approach To Developmental Research</td>
+            <td>Learning By Expanding: An Activity-theoretical Approach To Developmental Research</td>
             <td>Yrjö Engeström</td>
             <td>1987</td>
         </tr>
@@ -136,7 +136,7 @@
             <td>9780486298955</td>
             <td>How we think</td>
             <td>John Dewey</td>
-            <td>1997</td>
+            <td>1910</td>
         </tr>
         <tr>
             <td>9780262260619</td>
@@ -149,21 +149,19 @@
     <table id="output">
         <caption>Table 2: Result table</caption>
     </table>
+
+    <script type="text/javascript">
+        let csvParser = new CSVFileParser("books.csv")
+
+    </script>
+
+
     <script type="text/javascript">
         var sqlInput = document.querySelector("input[type='text']")
         sqlInput.value = ""
         var sqlOutput = document.querySelector("table#output")
 
-        var conditionalOps = [
-            function (a, b) { return a == b },
-            function (a, b) { return a != b },
-            function (a, b) { return a > b },
-            function (a, b) { return a < b },
-            function (a, b) { return a >= b },
-            function (a, b) { return a <= b }
-        ]
-
-        let playQueries = ["SELECT Title, Year FROM Books;", "SELECT * FROM Books WHERE Year = 1987;", "SELECT Title, Author, Year FROM Books WHERE Author='John Dewey';"]
+        let playQueries = ["SELECT Title, Year FROM Books;", "SELECT * FROM Books WHERE Year = 1987;", "SELECT Title, Author, Year FROM Books WHERE Author='John Dewey';","SELECT Title,Year FROM Books WHERE Year > 1987;"]
         let timer
         function play() {
             let count = 0
@@ -177,7 +175,6 @@
                 index++
                 timeToCall = 100
                 if (index >= playQueries[count].length) {
-                    console.log("here")
                     index = 0
                     interactWithTableDB(sqlInput.value)
                     count++
@@ -198,7 +195,6 @@
             clearTimeout(timer)
             sqlInput.value = ""
             index = 0
-            
         })
 
         sqlInput.addEventListener("keyup", function (e) {
@@ -257,10 +253,10 @@
                 checks = Array(conditions.length).fill(0)
                 for (var ii = 0, nn = conditions.length; ii < nn; ii++) {
                     let condition = conditions[ii]
-                    let ci = getColumnIndexByName(condition.firstCondition)
+                    let ci = getColumnIndexByName(condition.field)
                     //We need to typecheck here and cast with potential error
                     //so many dirty tricks here
-                    checks[ii] = +conditionalOps[condition.operator](row.cells[ci].innerHTML, condition.secondCondition)
+                    checks[ii] = +condition.operator.f(row.cells[ci].innerHTML, condition.data)
                 }
                 total = checks.reduce((a, b) => a + b, 0)
                 if (total == conditions.length) {
