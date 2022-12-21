@@ -10,24 +10,55 @@ class SQLException {
 }
 
 /*
+
+
+
+*/
+
+/*
 Without any help:
     - SELECT name FROM master.sys.databases 
 	- SQL: SELECT * FROM tables;
 	- SQL: SELECT * FROM Information_SCHEMA.colums WHERE tableName = 'tablename';
 	- SQL: SELECT * FROM table; become an instrument for data discovery
 
+    I have done it. Now I need some sort of way to interact with sql for convinience
+    But I need to keep the interact with a table kind of thinking
+
+    SQL -> HTMLTable
+    SQL -> CSV file
+    SQL -> Database -> Rows -> present result on HTMLTable
+    SQL -> API (pick any really. If there is a good "to sql translator then pick that")
+    This is silly really, but illustrates the point about the instrument.
+
+    To show this example I kinda need all three. 
+    - Be able to direct the SQL instrument at anything
+    - Change the properties of the SQL instrument
+        - Language (localization)
+        - Order of operations
+        - Autocomplete
+        - Spelling
+
+    - Recombine the tool:
+        - Merge SQL and the table information
+        - Increased spelling and autocomplete power
+        - ML techniques, i.e. NLIDB
+
+
+    Note: Column indexes
+        - type (which I can now get from sqlite but not from CSV/HTML tables)
+        - bag-of-words
+        - oddities (error analysis)
+
 */
 
 /*
 
-Databases
-- name //Library
-- tables //Books //Authors //Publishers
-    - name
-    - columns
+SQL.js: ALLOW ME TO QUERY SQLite in the browser.
+TODO:
 
-- name //Movies
-- tables //Movies //Actors //Directors
+Improve my own lexer and parser. 
+https://blog.gopheracademy.com/advent-2014/parsers-lexers/
 
 */
 
